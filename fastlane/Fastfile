@@ -1,0 +1,100 @@
+# Customise this file, documentation can be found here:
+# https://github.com/KrauseFx/fastlane/tree/master/docs
+# All available actions: https://github.com/KrauseFx/fastlane/blob/master/docs/Actions.md
+# can also be listed using the `fastlane actions` command
+
+# Change the syntax highlighting to Ruby
+# All lines starting with a # are ignored when running `fastlane`
+
+# By default, fastlane will send which actions are used
+# No personal data is shared, more information on https://github.com/fastlane/enhancer
+# Uncomment the following line to opt out
+# opt_out_usage
+
+# If you want to automatically update fastlane if a new version is available:
+# update_fastlane
+
+# This is the minimum version number required.
+# Update this, if you use features of a newer version
+fastlane_version "1.47.0"
+
+default_platform :ios
+
+
+platform :ios do
+  before_all do
+    # Make sure there's no uncommit codes.
+    ensure_git_status_clean
+  end
+
+  desc "Create new app on iTunes Connect and Apple Developer Portal"
+  lane :connect do
+    # Create new app on iTunes Connect & dev portal
+    produce(
+      username: 'mfmokhtar@gmail.com',
+      app_identifier: 'com.faizmokhtar.fastlanedemo',
+      app_name: 'Fastlanetest-faiz',
+      language: 'English',
+      app_version: '1.0',
+      sku: '2015-v1-fastlanedemo'
+    )
+    # Upload screenshots, metadata & your app to the app store 
+    deliver
+  end
+
+  desc "Update certificates & use it on provisioning profiles"
+  lane :update_certs do
+    # Create and maintain code signing certificates
+    cert
+    # create, renew download & repair provisioning profiles.
+    sigh(force: true) # force will renewed profiles regardless its state
+  end
+
+  desc "Runs all the tests"
+  lane :test do
+    snapshot
+  end
+
+  desc "Submit a new Beta Build to Apple TestFlight"
+  desc "This will also make sure the profile is up to date"
+  lane :beta do
+    sigh
+    gym # Build your app - more options available
+    pilot
+    # sh "your_script.sh"
+    # You can also use other beta testing services here
+  end
+
+  desc "Deploy a new version to the App Store"
+  lane :deploy do
+    # Increment build number
+    increment_build_number
+    # snapshot
+    sigh
+    gym # Build your app - more options available
+    # deliver(force: true)
+    # frameit
+  end
+
+  after_all do |lane|
+    # This block is called, only if the executed lane was successful
+    
+    # slack(
+    #   message: "Successfully deployed new App Update."
+    # )
+    
+    say "lanes executed!"
+  end
+
+  error do |lane, exception|
+    # slack(
+    #   message: exception.message,
+    #   success: false
+    # )
+  end
+end
+
+
+
+# More information about multiple platforms in fastlane: https://github.com/KrauseFx/fastlane/blob/master/docs/Platforms.md
+# All available actions: https://github.com/KrauseFx/fastlane/blob/master/docs/Actions.md
